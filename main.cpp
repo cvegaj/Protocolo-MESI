@@ -65,7 +65,7 @@ bool cache::readAddress(long lAddr){
   if (vBlocks[lIndex].bValidBit){
         return true;
   }
-  //Si se da MISS
+  //Si se da MISS lo busca y reemplaza
   vBlocks[lIndex].bValidBit = true;
   vBlocks[lIndex].lBlockTag = lTag;
   return false;
@@ -126,7 +126,7 @@ int main(int arcg, char* argv[]){
     if(CPU == 0 ) {//CPU0
         if(lAct == 'L'){//Lectura
   	    bHit = CacheCPU0.readAddress(lAddr);
-            if(!bHit){//Si hay MISS
+            if(!bHit){//Si hay Read MISS
                 cout << "*************************************" << endl;
                 cout << "CPU0 Read Miss" << endl;
                 if(CacheCPU1.checkBlock(lAddr) == 'I'){//No está en CPU1
@@ -156,7 +156,7 @@ int main(int arcg, char* argv[]){
                 }else{
 		}
             }
-            else{//Si hay HIT
+            else{//Si hay Read HIT
                 cout << "*************************************" << endl;
                 cout << "CPU0 Read Hit" << endl;
                 if(CacheCPU0.checkBlock(lAddr) == 'I'){
@@ -179,14 +179,123 @@ int main(int arcg, char* argv[]){
                 }
             }
         }else{//Escritura
-            
+            bHit = CacheCPU0.readAddress(lAddr);
+            if(!bHit){//Si hay Write MISS
+                cout << "*************************************" << endl;
+                cout << "CPU0 Write Miss" << endl;
+                if(CacheCPU1.checkBlock(lAddr) == 'I'){//No está en CPU1
+		    CacheCPU0.setState(lAddr,'E');
+                    CacheShared.setState(lAddr,'E');
+                    cout << "CPU0 Dejó bloque propio en: " << CacheCPU0.checkBlock(lAddr) << endl;
+                    cout << "CPU0 Dejó bloque Shared en: " << CacheShared.checkBlock(lAddr) << endl;
+                    cout << "CPU0 No modificó bloque CPU1 " << endl;
+		}
+	        if(CacheCPU1.checkBlock(lAddr) == 'S'){
+                    CacheCPU0.setState(lAddr,'E'); 
+                    CacheCPU1.setState(lAddr,'I');// Como era compartido y se modificó se invalida CPU1
+                    CacheShared.setState(lAddr,'E');
+                    cout << "CPU0 Dejó bloque propio en: " << CacheCPU0.checkBlock(lAddr) << endl;
+                    cout << "CPU0 Dejó bloque CPU1 en: " << CacheCPU1.checkBlock(lAddr) << endl;
+                    cout << "CPU0 Dejó bloque Shared en: " << CacheShared.checkBlock(lAddr) << endl;
+                }
+                if(CacheCPU1.checkBlock(lAddr) == 'E'){
+                    CacheCPU0.setState(lAddr,'E');
+                    CacheCPU1.setState(lAddr,'E');
+                    CacheCPU1.setState(lAddr,'E');
+                    cout << "CPU0 Dejó bloque propio en: " << CacheCPU0.checkBlock(lAddr) << endl;
+                    cout << "CPU0 Dejó bloque CPU1 en: " << CacheCPU1.checkBlock(lAddr) << endl;
+                    cout << "CPU0 Dejó bloque Shared" << CacheShared.checkBlock(lAddr) << endl;
+                }
+                if(CacheCPU1.checkBlock(lAddr) == 'M'){//Si está modificado, actualizar Cache compartido
+                    CacheShared.setState(lAddr,'S');
+                    CacheCPU0.setState(lAddr,'S');
+                    CacheCPU1.setState(lAddr,'S');
+                    cout << "CPU0 Dejó bloque propio en: " << CacheCPU0.checkBlock(lAddr) << endl;
+                    cout << "CPU0 Dejó bloque CPU1 en: " << CacheCPU1.checkBlock(lAddr) << endl;
+                    cout << "CPU0 Dejó bloque Shared en: " << CacheShared.checkBlock(lAddr) << endl;
+                }else{
+		}
+            }
+            else{//Si hay Write HIT
+                cout << "*************************************" << endl;
+                cout << "CPU0 Read Hit" << endl;
+                if(CacheCPU0.checkBlock(lAddr) == 'E'){
+                    if(CacheCPU1.checkBlock(lAddr) != 'I'){// Si está en CPU1
+                        CacheCPU0.setState(lAddr,'E');
+                        CacheCPU1.setState(lAddr,'I');
+                        CacheShared.setState(lAddr,'E');
+                        cout << "CPU0 Dejó bloque propio en: " << CacheCPU0.checkBlock(lAddr) << endl;
+                        cout << "CPU0 Dejó bloque CPU1 en: " << CacheCPU1.checkBlock(lAddr) << endl;
+                        cout << "CPU0 Dejó bloque Shared en: " << CacheShared.checkBlock(lAddr) << endl;
+
+                    }else{//Si está en CPU0 y no está en CPU1
+                        CacheCPU0.setState(lAddr,'E');
+                        CacheShared.setState(lAddr,'E');
+                        cout << "CPU0 Dejó bloque propio en: " << CacheCPU0.checkBlock(lAddr) << endl;
+                        cout << "CPU0 No modificó bloque CPU1: " << endl;
+                        cout << "CPU0 Dejó bloque Shared en: " << CacheShared.checkBlock(lAddr) << endl;
+                    }
+                }
+                if(CacheCPU0.checkBlock(lAddr) == 'M'){
+                    if(CacheCPU1.checkBlock(lAddr) != 'I'){// Si está en CPU1
+                        CacheCPU0.setState(lAddr,'E');
+                        CacheCPU1.setState(lAddr,'I');
+                        CacheShared.setState(lAddr,'E');
+                        cout << "CPU0 Dejó bloque propio en: " << CacheCPU0.checkBlock(lAddr) << endl;
+                        cout << "CPU0 Dejó bloque CPU1 en: " << CacheCPU1.checkBlock(lAddr) << endl;
+                        cout << "CPU0 Dejó bloque Shared en: " << CacheShared.checkBlock(lAddr) << endl;
+
+                    }else{//Si está en CPU0 y no está en CPU1
+                        CacheCPU0.setState(lAddr,'E');
+                        CacheShared.setState(lAddr,'E');
+                        cout << "CPU0 Dejó bloque propio en: " << CacheCPU0.checkBlock(lAddr) << endl;
+                        cout << "CPU0 No modificó bloque CPU1: " << endl;
+                        cout << "CPU0 Dejó bloque Shared en: " << CacheShared.checkBlock(lAddr) << endl;
+                    }
+                }
+                if(CacheCPU0.checkBlock(lAddr) == 'S'){
+                    if(CacheCPU1.checkBlock(lAddr) != 'I'){// Si está en CPU1
+                        CacheCPU0.setState(lAddr,'M');
+                        CacheCPU1.setState(lAddr,'I');
+                        CacheShared.setState(lAddr,'M');
+                        cout << "CPU0 Dejó bloque propio en: " << CacheCPU0.checkBlock(lAddr) << endl;
+                        cout << "CPU0 Dejó bloque CPU1 en: " << CacheCPU1.checkBlock(lAddr) << endl;
+                        cout << "CPU0 Dejó bloque Shared en: " << CacheShared.checkBlock(lAddr) << endl;
+
+                    }else{//Si está en CPU0 y no está en CPU1
+                        CacheCPU0.setState(lAddr,'E');
+                        CacheShared.setState(lAddr,'E');
+                        cout << "CPU0 Dejó bloque propio en: " << CacheCPU0.checkBlock(lAddr) << endl;
+                        cout << "CPU0 No modificó bloque CPU1: " << endl;
+                        cout << "CPU0 Dejó bloque Shared en: " << CacheShared.checkBlock(lAddr) << endl;
+                    }
+                }
+                if(CacheCPU0.checkBlock(lAddr) == 'I'){
+                    if(CacheCPU1.checkBlock(lAddr) == 'I'){// Si no está en CPU1
+                        CacheCPU0.setState(lAddr,'M');
+                        CacheCPU1.setState(lAddr,'I');
+                        CacheShared.setState(lAddr,'M');
+                        cout << "CPU0 Dejó bloque propio en: " << CacheCPU0.checkBlock(lAddr) << endl;
+                        cout << "CPU0 Dejó bloque CPU1 en: " << CacheCPU1.checkBlock(lAddr) << endl;
+                        cout << "CPU0 Dejó bloque Shared en: " << CacheShared.checkBlock(lAddr) << endl;
+
+                    }else{//Si está en CPU1
+                        CacheCPU0.setState(lAddr,'S');
+                        CacheShared.setState(lAddr,'S');
+                        CacheShared.setState(lAddr,'S');
+                        cout << "CPU0 Dejó bloque propio en: " << CacheCPU0.checkBlock(lAddr) << endl;
+                        cout << "CPU0 Dejó bloque CPU1 en: " << CacheCPU1.checkBlock(lAddr) << endl;
+                        cout << "CPU0 Dejó bloque Shared en: " << CacheShared.checkBlock(lAddr) << endl;
+                    }
+                }
+            }    
         }
 	CPU = 1;
     ///////////////////////////////////////////////////////////////////////////////////
     }else{//CPU1
         if(lAct == 'L'){//Lectura
   	    bHit = CacheCPU0.readAddress(lAddr);
-            if(!bHit){//Si hay MISS
+            if(!bHit){//Si hay Read MISS
                 cout << "*************************************" << endl;
                 cout << "CPU1 Read Miss" << endl;
                 if(CacheCPU0.checkBlock(lAddr) == 'I'){//No está en CPU1
@@ -203,19 +312,19 @@ int main(int arcg, char* argv[]){
                     CacheCPU1.setState(lAddr,'S');//Si está exclusivo, poner ambos
                     CacheCPU0.setState(lAddr,'S');// en compartido
                     cout << "CPU1 Dejó bloque propio en: " << CacheCPU1.checkBlock(lAddr) << endl;
-                    cout << "CPU1 Dejó bloque CPU1 en: " << CacheCPU0.checkBlock(lAddr) << endl;
-                    cout << "CPU1 No modificó Shared" << endl;
+                    cout << "CPU1 Dejó bloque CPU0 en: " << CacheCPU0.checkBlock(lAddr) << endl;
+                    cout << "CPU1 No modificó Shared en: " << endl;
                 }
                 if(CacheCPU0.checkBlock(lAddr) == 'M'){//Si está modificado, actualizar Cache compartido
                     CacheShared.setState(lAddr,'S');
                     CacheCPU1.setState(lAddr,'S');
                     CacheCPU0.setState(lAddr,'S');
                     cout << "CPU1 Dejó bloque propio en: " << CacheCPU1.checkBlock(lAddr) << endl;
-                    cout << "CPU1 Dejó bloque CPU1 en: " << CacheCPU0.checkBlock(lAddr) << endl;
+                    cout << "CPU1 Dejó bloque CPU0 en: " << CacheCPU0.checkBlock(lAddr) << endl;
                     cout << "CPU1 Dejó bloque Shared en: " << CacheShared.checkBlock(lAddr) << endl;
                 }
             }
-            else{//Si hay HIT
+            else{//Si hay Read HIT
                 cout << "*************************************" << endl;
                 cout << "CPU1 Read Hit" << endl;
                 if(CacheCPU1.checkBlock(lAddr) == 'I'){
@@ -224,7 +333,7 @@ int main(int arcg, char* argv[]){
                         CacheCPU0.setState(lAddr,'S');
                         CacheShared.setState(lAddr,'S');
                         cout << "CPU1 Dejó bloque propio en: " << CacheCPU1.checkBlock(lAddr) << endl;
-                        cout << "CPU1 Dejó bloque CPU1 en: " << CacheCPU0.checkBlock(lAddr) << endl;
+                        cout << "CPU1 Dejó bloque CPU0 en: " << CacheCPU0.checkBlock(lAddr) << endl;
                         cout << "CPU1 Dejó bloque Shared en: " << CacheShared.checkBlock(lAddr) << endl;
 
                     }else{//Si está inválido o no está en CPU1
@@ -239,7 +348,116 @@ int main(int arcg, char* argv[]){
                 }
             }
         }else{//Escritura
-            
+            bHit = CacheCPU1.readAddress(lAddr);
+            if(!bHit){//Si hay Write MISS
+                cout << "*************************************" << endl;
+                cout << "CPU1 Write Miss" << endl;
+                if(CacheCPU0.checkBlock(lAddr) == 'I'){//No está en CPU0
+		    CacheCPU1.setState(lAddr,'E');
+                    CacheShared.setState(lAddr,'E');
+                    cout << "CPU1 Dejó bloque propio en: " << CacheCPU1.checkBlock(lAddr) << endl;
+                    cout << "CPU1 Dejó bloque Shared en: " << CacheShared.checkBlock(lAddr) << endl;
+                    cout << "CPU1 No modificó bloque CPU0: " << endl;
+		}
+	        if(CacheCPU0.checkBlock(lAddr) == 'S'){
+                    CacheCPU1.setState(lAddr,'E'); 
+                    CacheCPU0.setState(lAddr,'I');// Como era compartido y se modificó se invalida CPU0
+                    CacheShared.setState(lAddr,'E');
+                    cout << "CPU1 Dejó bloque propio en: " << CacheCPU1.checkBlock(lAddr) << endl;
+                    cout << "CPU1 Dejó bloque CPU0 en: " << CacheCPU0.checkBlock(lAddr) << endl;
+                    cout << "CPU1 Dejó bloque Shared en: " << CacheShared.checkBlock(lAddr) << endl;
+                }
+                if(CacheCPU0.checkBlock(lAddr) == 'E'){
+                    CacheCPU1.setState(lAddr,'E');
+                    CacheCPU0.setState(lAddr,'E');
+                    CacheCPU0.setState(lAddr,'E');
+                    cout << "CPU1 Dejó bloque propio en: " << CacheCPU1.checkBlock(lAddr) << endl;
+                    cout << "CPU1 Dejó bloque CPU0 en: " << CacheCPU0.checkBlock(lAddr) << endl;
+                    cout << "CPU1 Dejó bloque Shared" << CacheShared.checkBlock(lAddr) << endl;
+                }
+                if(CacheCPU0.checkBlock(lAddr) == 'M'){//Si está modificado, actualizar Cache compartido
+                    CacheShared.setState(lAddr,'S');
+                    CacheCPU1.setState(lAddr,'S');
+                    CacheCPU0.setState(lAddr,'S');
+                    cout << "CPU1 Dejó bloque propio en: " << CacheCPU1.checkBlock(lAddr) << endl;
+                    cout << "CPU1 Dejó bloque CPU0 en: " << CacheCPU0.checkBlock(lAddr) << endl;
+                    cout << "CPU1 Dejó bloque Shared en: " << CacheShared.checkBlock(lAddr) << endl;
+                }else{
+		}
+            }
+            else{//Si hay Write HIT
+                cout << "*************************************" << endl;
+                cout << "CPU1 Write Hit" << endl;
+                if(CacheCPU1.checkBlock(lAddr) == 'E'){
+                    if(CacheCPU0.checkBlock(lAddr) != 'I'){// Si está en CPU0
+                        CacheCPU1.setState(lAddr,'E');
+                        CacheCPU0.setState(lAddr,'I');
+                        CacheShared.setState(lAddr,'E');
+                        cout << "CPU1 Dejó bloque propio en: " << CacheCPU1.checkBlock(lAddr) << endl;
+                        cout << "CPU1 Dejó bloque CPU0 en: " << CacheCPU0.checkBlock(lAddr) << endl;
+                        cout << "CPU1 Dejó bloque Shared en: " << CacheShared.checkBlock(lAddr) << endl;
+
+                    }else{//Si está en CPU1 y no está en CPU0
+                        CacheCPU1.setState(lAddr,'E');
+                        CacheShared.setState(lAddr,'E');
+                        cout << "CPU1 Dejó bloque propio en: " << CacheCPU1.checkBlock(lAddr) << endl;
+                        cout << "CPU1 No modificó bloque CPU0: " << endl;
+                        cout << "CPU1 Dejó bloque Shared en: " << CacheShared.checkBlock(lAddr) << endl;
+                    }
+                }
+                if(CacheCPU1.checkBlock(lAddr) == 'M'){
+                    if(CacheCPU0.checkBlock(lAddr) != 'I'){// Si está en CPU0
+                        CacheCPU1.setState(lAddr,'E');
+                        CacheCPU0.setState(lAddr,'I');
+                        CacheShared.setState(lAddr,'E');
+                        cout << "CPU1 Dejó bloque propio en: " << CacheCPU1.checkBlock(lAddr) << endl;
+                        cout << "CPU1 Dejó bloque CPU0 en: " << CacheCPU0.checkBlock(lAddr) << endl;
+                        cout << "CPU1 Dejó bloque Shared en: " << CacheShared.checkBlock(lAddr) << endl;
+
+                    }else{//Si está en CPU1 y no está en CPU0
+                        CacheCPU1.setState(lAddr,'E');
+                        CacheShared.setState(lAddr,'E');
+                        cout << "CPU1 Dejó bloque propio en: " << CacheCPU1.checkBlock(lAddr) << endl;
+                        cout << "CPU1 No modificó bloque CPU0: " << endl;
+                        cout << "CPU1 Dejó bloque Shared en: " << CacheShared.checkBlock(lAddr) << endl;
+                    }
+                }
+                if(CacheCPU1.checkBlock(lAddr) == 'S'){
+                    if(CacheCPU0.checkBlock(lAddr) != 'I'){// Si está en CPU1
+                        CacheCPU1.setState(lAddr,'M');
+                        CacheCPU0.setState(lAddr,'I');
+                        CacheShared.setState(lAddr,'M');
+                        cout << "CPU1 Dejó bloque propio en: " << CacheCPU1.checkBlock(lAddr) << endl;
+                        cout << "CPU1 Dejó bloque CPU1 en: " << CacheCPU0.checkBlock(lAddr) << endl;
+                        cout << "CPU1 Dejó bloque Shared en: " << CacheShared.checkBlock(lAddr) << endl;
+
+                    }else{//Si está en CPU1 y no está en CPU0
+                        CacheCPU1.setState(lAddr,'E');
+                        CacheShared.setState(lAddr,'E');
+                        cout << "CPU1 Dejó bloque propio en: " << CacheCPU1.checkBlock(lAddr) << endl;
+                        cout << "CPU1 No modificó bloque CPU0: " << endl;
+                        cout << "CPU1 Dejó bloque Shared en: " << CacheShared.checkBlock(lAddr) << endl;
+                    }
+                }
+                if(CacheCPU1.checkBlock(lAddr) == 'I'){
+                    if(CacheCPU0.checkBlock(lAddr) == 'I'){// Si no está en CPU1
+                        CacheCPU1.setState(lAddr,'M');
+                        CacheCPU0.setState(lAddr,'I');
+                        CacheShared.setState(lAddr,'M');
+                        cout << "CPU1 Dejó bloque propio en: " << CacheCPU1.checkBlock(lAddr) << endl;
+                        cout << "CPU1 Dejó bloque CPU0 en: " << CacheCPU0.checkBlock(lAddr) << endl;
+                        cout << "CPU1 Dejó bloque Shared en: " << CacheShared.checkBlock(lAddr) << endl;
+
+                    }else{//Si está en CPU0
+                        CacheCPU1.setState(lAddr,'S');
+                        CacheShared.setState(lAddr,'S');
+                        CacheShared.setState(lAddr,'S');
+                        cout << "CPU1 Dejó bloque propio en: " << CacheCPU1.checkBlock(lAddr) << endl;
+                        cout << "CPU1 Dejó bloque CPU1 en: " << CacheCPU0.checkBlock(lAddr) << endl;
+                        cout << "CPU1 Dejó bloque Shared en: " << CacheShared.checkBlock(lAddr) << endl;
+                    }
+                }
+            }    
         }
 	CPU = 0;
     }
