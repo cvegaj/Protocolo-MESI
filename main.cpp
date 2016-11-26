@@ -340,11 +340,11 @@ int main(int arcg, char* argv[]){
                         CacheCPU1.setState(lAddr,'E');
 
                         cout << "CPU1 Dejó bloque propio en: " << CacheCPU1.checkBlock(lAddr) << endl;
-                        cout << "CPU1 No modificó otros Caches: " << endl;
+                        cout << "CPU1 No modificó otros Caches" << endl;
                     }
                 }else{
                     cout << "CPU1 Dejó bloque propio en: " << CacheCPU1.checkBlock(lAddr) << endl;
-                    cout << "CPU1 No modificó otros Caches: " << endl;
+                    cout << "CPU1 No modificó otros Caches" << endl;
                 }
             }
         }else{//Escritura
@@ -462,5 +462,4 @@ int main(int arcg, char* argv[]){
 	CPU = 0;
     }
   }
-//http://e-spacio.uned.es/fez/eserv/taee:congreso-2006-1112/S3E04.pdf
 }
