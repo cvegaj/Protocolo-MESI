@@ -472,7 +472,7 @@ int main(int arcg, char* argv[]){
         }
 	CPU = 0;
     }
-    if (Counter<10){
+    if (Counter<20){
         cout << "Estado bloque cache CPU0: " << CacheCPU0.checkBlock(lAddr) << endl;
         cout << "Estado bloque cache CPU1: " << CacheCPU1.checkBlock(lAddr) << endl;
         cout << "Estado bloque cache Shared: " << CacheShared.checkBlock(lAddr) << endl;
