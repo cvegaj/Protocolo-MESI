@@ -9,7 +9,7 @@
 using namespace std;
 
 struct block{
-  char State = 'I'; //MESI
+  char State = 'M';  //MESI
   bool bValidBit = false;
   long lBlockTag = 0;
 };
@@ -75,10 +75,8 @@ bool cache::readAddress(long lAddr){
 char cache::checkBlock(long lAddr){
   lAddress = lAddr;
   splitAddress();
-  if(vBlocks[lIndex].bValidBit){
-      return vBlocks[lIndex].State;
-  }
-  return 'I';
+  return vBlocks[lIndex].State;
+
 }
 
 
@@ -212,7 +210,7 @@ int main(int arcg, char* argv[]){
                 if(CacheCPU1.checkBlock(lAddr) == 'E'){
                     CacheCPU0.setState(lAddr,'E');
                     CacheCPU1.setState(lAddr,'E');
-                    CacheCPU1.setState(lAddr,'E');
+                    CacheShared.setState(lAddr,'E');
                     //cout << "CPU0 Dejó bloque propio en: " << CacheCPU0.checkBlock(lAddr) << endl;
                     //cout << "CPU0 Dejó bloque CPU1 en: " << CacheCPU1.checkBlock(lAddr) << endl;
                     //cout << "CPU0 Dejó bloque Shared" << CacheShared.checkBlock(lAddr) << endl;
@@ -292,7 +290,7 @@ int main(int arcg, char* argv[]){
 
                     }else{//Si está en CPU1
                         CacheCPU0.setState(lAddr,'S');
-                        CacheShared.setState(lAddr,'S');
+                        CacheCPU1.setState(lAddr,'S');
                         CacheShared.setState(lAddr,'S');
                         //cout << "CPU0 Dejó bloque propio en: " << CacheCPU0.checkBlock(lAddr) << endl;
                         //cout << "CPU0 Dejó bloque CPU1 en: " << CacheCPU1.checkBlock(lAddr) << endl;
@@ -381,7 +379,7 @@ int main(int arcg, char* argv[]){
                 if(CacheCPU0.checkBlock(lAddr) == 'E'){
                     CacheCPU1.setState(lAddr,'E');
                     CacheCPU0.setState(lAddr,'E');
-                    CacheCPU0.setState(lAddr,'E');
+                    CacheShared.setState(lAddr,'E');
                     //cout << "CPU1 Dejó bloque propio en: " << CacheCPU1.checkBlock(lAddr) << endl;
                     //cout << "CPU1 Dejó bloque CPU0 en: " << CacheCPU0.checkBlock(lAddr) << endl;
                     //cout << "CPU1 Dejó bloque Shared" << CacheShared.checkBlock(lAddr) << endl;
@@ -461,7 +459,7 @@ int main(int arcg, char* argv[]){
 
                     }else{//Si está en CPU0
                         CacheCPU1.setState(lAddr,'S');
-                        CacheShared.setState(lAddr,'S');
+                        CacheCPU0.setState(lAddr,'S');
                         CacheShared.setState(lAddr,'S');
                         //cout << "CPU1 Dejó bloque propio en: " << CacheCPU1.checkBlock(lAddr) << endl;
                         //cout << "CPU1 Dejó bloque CPU1 en: " << CacheCPU0.checkBlock(lAddr) << endl;
