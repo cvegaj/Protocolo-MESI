@@ -1,4 +1,4 @@
-all: cache
+all: cache mpi
 cache:
 	g++ -o cache main.cpp
 mpi:
